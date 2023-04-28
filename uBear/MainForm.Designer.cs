@@ -75,6 +75,8 @@
             this.treeExpandBtn = new System.Windows.Forms.ToolStripButton();
             this.treeCollapseBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.deviceBtn = new System.Windows.Forms.ToolStripMenuItem();
+            this.deviceViewInfoBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.mainStatusStrip.SuspendLayout();
             this.mainToolStrip.SuspendLayout();
             this.plotPanel.SuspendLayout();
@@ -257,7 +259,8 @@
             this.utilsBtn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.utilsBtn.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.trackBtn,
-            this.toolStripSeparator10});
+            this.toolStripSeparator10,
+            this.deviceBtn});
             this.utilsBtn.Image = ((System.Drawing.Image)(resources.GetObject("utilsBtn.Image")));
             this.utilsBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.utilsBtn.Name = "utilsBtn";
@@ -590,6 +593,22 @@
             this.toolStripLabel1.Size = new System.Drawing.Size(97, 32);
             this.toolStripLabel1.Text = "REMOTES";
             // 
+            // deviceBtn
+            // 
+            this.deviceBtn.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.deviceViewInfoBtn});
+            this.deviceBtn.Enabled = false;
+            this.deviceBtn.Name = "deviceBtn";
+            this.deviceBtn.Size = new System.Drawing.Size(224, 36);
+            this.deviceBtn.Text = "🤖 Device";
+            // 
+            // deviceViewInfoBtn
+            // 
+            this.deviceViewInfoBtn.Name = "deviceViewInfoBtn";
+            this.deviceViewInfoBtn.Size = new System.Drawing.Size(224, 36);
+            this.deviceViewInfoBtn.Text = "View info...";
+            this.deviceViewInfoBtn.Click += new System.EventHandler(this.deviceViewInfoBtn_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
@@ -673,6 +692,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator10;
         private System.Windows.Forms.ToolStripLabel toolStripLabel1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.ToolStripMenuItem deviceBtn;
+        private System.Windows.Forms.ToolStripMenuItem deviceViewInfoBtn;
     }
 }
 

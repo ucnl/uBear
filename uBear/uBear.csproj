@@ -69,15 +69,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\DHFilter.cs" />
-    <Compile Include="Core\LogPlayer.cs" />
     <Compile Include="Core\RemoteDescriptor.cs" />
-    <Compile Include="Core\TrackManager.cs" />
     <Compile Include="Core\uCore.cs" />
-    <Compile Include="Core\uGNSSSerialPort.cs" />
-    <Compile Include="Core\uSerialPort.cs" />
     <Compile Include="Core\uWave.cs" />
     <Compile Include="Core\uWaveSerialPort.cs" />
-    <Compile Include="Core\WPManager.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -87,13 +82,18 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SettingsContainer.cs" />
+    <Compile Include="UI\InfoViewDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\InfoViewDialog.Designer.cs">
+      <DependentUpon>InfoViewDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\SettingsEditor.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\SettingsEditor.Designer.cs">
       <DependentUpon>SettingsEditor.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\UIHelpers.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -107,6 +107,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="UI\InfoViewDialog.resx">
+      <DependentUpon>InfoViewDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\SettingsEditor.resx">
       <DependentUpon>SettingsEditor.cs</DependentUpon>
     </EmbeddedResource>

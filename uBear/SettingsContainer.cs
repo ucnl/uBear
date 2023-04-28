@@ -5,6 +5,7 @@ namespace uBear
 {
     public enum RemoteAddress
     {
+        Remote_0 = 0,
         Remote_1 = 1,
         Remote_2 = 2,
         Remote_3 = 3,

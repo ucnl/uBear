@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using uBear.Core;
 using uBear.UI;
 using UCNLDrivers;
+using UCNLUI;
 using UCNLUI.Controls;
 using UCNLUI.Dialogs;
 
@@ -124,7 +125,6 @@ namespace uBear
             
             core.IsAutoGravity = true;
 
-
             core.LogEventHandler += (o, e) => logger.Write(string.Format("{0}: {1}", e.EventType, e.LogString));
 
             InvokeUpdatePortStatusLbl(mainStatusStrip, uPortStatusLbl, core.IsActive, core.uPortDetected, core.uPortStatus);
@@ -145,40 +145,17 @@ namespace uBear
                 logger.Write(string.Format("Core.IsActive={0}", core.IsActive));
             };
 
-            core.uPortDetectedChanged += (o, e) =>
-            {
-                InvokeUpdatePortStatusLbl(mainStatusStrip, uPortStatusLbl, core.IsActive, core.uPortDetected, core.uPortStatus);
-            };
-
-            core.uGNSSPortDetectedChanged += (o, e) =>
-            {
-                InvokeUpdatePortStatusLbl(mainStatusStrip, gnssPortStatusLbl, core.IsActive, core.GNSSPortDetected, core.GNSSPortStatus);
-            };
-
-            core.IsGNSSActiveChanged += (o, e) =>
-            {
-                InvokeUpdatePortStatusLbl(mainStatusStrip, gnssPortStatusLbl, core.IsActive, core.GNSSPortDetected, core.GNSSPortStatus);
-            };
-
+            core.uPortDetectedChanged += (o, e) => InvokeUpdatePortStatusLbl(mainStatusStrip, uPortStatusLbl, core.IsActive, core.uPortDetected, core.uPortStatus);
+            core.uGNSSPortDetectedChanged += (o, e) => InvokeUpdatePortStatusLbl(mainStatusStrip, gnssPortStatusLbl, core.IsActive, core.GNSSPortDetected, core.GNSSPortStatus);
+            core.DeviceInfoValidChanged += (o, e) => UIHelpers.InvokeSetEnabledState(mainToolStrip, deviceBtn, core.DeviceInfoValid);
+            core.IsGNSSActiveChanged += (o, e) => InvokeUpdatePortStatusLbl(mainStatusStrip, gnssPortStatusLbl, core.IsActive, core.GNSSPortDetected, core.GNSSPortStatus);       
+            core.HeadingUpdated += (o, e) => InvokeSetHeading(core.Heading);
+            core.AbsoluteLocationUpdated += (o, e) => tManager.AddPoint(e.ID, e.Latitude_deg, e.Longitude_deg, e.Depth_m, DateTime.Now);
+            core.RelativeLocationUpdated += (o, e) => InvokeSetTarget(e.ID, e.PRange_m, e.Azimuth_deg, e.IsTimeout);
             core.StateUpdateHandler += (o, e) =>
             {
                 InvokeSetLeftTopText(core.SystemDescriptionGet());
                 InvokeSynchRemotes(core.RemoteDescriptorsGet());
-            };
-
-            core.HeadingUpdated += (o, e) =>
-            {
-                InvokeSetHeading(core.Heading);
-            };
-
-            core.AbsoluteLocationUpdated += (o, e) =>
-            {
-                tManager.AddPoint(e.ID, e.Latitude_deg, e.Longitude_deg, e.Depth_m, DateTime.Now);
-            };
-
-            core.RelativeLocationUpdated += (o, e) =>
-            {
-                InvokeSetTarget(e.ID, e.PRange_m, e.Azimuth_deg, e.IsTimeout);
             };
 
             #endregion            
@@ -678,6 +655,16 @@ namespace uBear
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question) == DialogResult.Yes))
                 tManager.Clear();
+        }
+
+        private void deviceViewInfoBtn_Click(object sender, EventArgs e)
+        {
+            using (InfoViewDialog iDialog = new InfoViewDialog())
+            {
+                iDialog.Text = "Device information";
+                iDialog.InfoText = core.DeviceInfo;
+                iDialog.ShowDialog();
+            }
         }
 
         #endregion
