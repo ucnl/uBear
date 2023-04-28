@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using UCNLDrivers;
 using UCNLNav;
 using UCNLNMEA;
+using UCNLUI;
 
 namespace uBear.Core
 {
@@ -104,10 +106,9 @@ namespace uBear.Core
 
         public double Heading
         {
-            get { return (uGNSSPort == null) || (!uGNSSPort.Heading.IsInitialized) ? double.NaN : uGNSSPort.Heading.Value; }
+            get { return (uGNSSPort == null) ? double.NaN : uGNSSPort.Heading; }
         }
-
-        
+                
         public double SoundSpeed
         {
             get => wpManager.SoundSpeed;
@@ -144,9 +145,42 @@ namespace uBear.Core
             set => wpManager.GravityAcceleration = value;
         }
 
+        public bool DeviceInfoValid
+        {
+            get => uPort.IsDeviceInfoValid;
+        }
+
+        public string DeviceInfo
+        {
+            get
+            {
+                if (uPort.IsDeviceInfoValid)
+                {
+                    StringBuilder sb = new StringBuilder();
+
+                    sb.AppendFormat(CultureInfo.InvariantCulture,
+                        "{0} v{1}\r\n{2} v{3}\r\nS/N: {4}\r\nPTS: {5}\r\nAc. Baudrate: {6} bps\r\n",
+                        uPort.SystemMoniker, uPort.SystemVersion,
+                        uPort.CoreMoniker, uPort.CoreVersion,
+                        uPort.SerialNumber,
+                        uPort.IsPTS,
+                        uPort.AcousticBaudrate);
+
+                    return sb.ToString();
+                }
+                else
+                    return string.Empty;
+            }
+        }
+
+
+        AgingValue<double> gnssLatitude;
+        AgingValue<double> gnssLongitude;
+        AgingValue<double> gnssCourse;
+        AgingValue<double> gnssSpeed;
+        AgingValue<double> gnssHeading;
 
         WPManager wpManager;
-
 
         int remoteIdx;
         List<RemoteAddress> remoteAddresses;
@@ -187,6 +221,12 @@ namespace uBear.Core
             wpManager.SoundSpeedChanged += (o, e) => LogEventHandler.Rise(this,
                 new LogEventArgs(LogLineType.INFO,
                 string.Format("Sound speed updated: {0:F01} m/s", SoundSpeed)));
+
+            gnssHeading = new AgingValue<double>(3, 10, x => string.Format(CultureInfo.InvariantCulture, "{0:F01}°", x));
+            gnssLatitude = new AgingValue<double>(3, 10, x => string.Format(CultureInfo.InvariantCulture, "{0:F06}°", x));
+            gnssLongitude = new AgingValue<double>(3, 10, x => string.Format(CultureInfo.InvariantCulture, "{0:F06}°", x));
+            gnssSpeed = new AgingValue<double>(3, 10, x => string.Format(CultureInfo.InvariantCulture, "{0:F01} km/h", x));
+            gnssCourse = new AgingValue<double>(3, 10, x => string.Format(CultureInfo.InvariantCulture, "{0:F01}°", x));
 
             #endregion
 
@@ -250,6 +290,8 @@ namespace uBear.Core
                 {
                     uPort.Query_AMB_CFG_WRITE(true, 1, true, true, true, false);
                 }
+
+                DeviceInfoValidChanged.Rise(this, e);
             };
 
             uPort.IsActiveChanged += (o, e) => IsActiveChanged.Rise(o, e);
@@ -284,15 +326,15 @@ namespace uBear.Core
                     }
                     else if (e.SentenceID == ICs.IC_H2D_AMB_DTA_CFG)
                     {
-                        //uPort.Query_PTCROL_CFG_WRITE(true, 1);
+                        uPort.Query_PTCROL_CFG_WRITE(true, 1);
 
-                        remote_polling_enabled = true;
-                        RemotePollingProcess();
+                        //remote_polling_enabled = true;
+                        //RemotePollingProcess();
                     }
                     else if (e.SentenceID == ICs.IC_H2D_INC_DTA_CFG)
                     {
-                        //remote_polling_enabled = true;
-                        //RemotePollingProcess();
+                        remote_polling_enabled = true;
+                        RemotePollingProcess();
                     }
                 }
                 else
@@ -342,7 +384,7 @@ namespace uBear.Core
                 {
                     double s_range_m = e.PropTime_sec * SoundSpeed;
 
-                    // WARNING!!!
+                    /// WARNING!!!
                     double r_azimuth_deg = 450 - e.Azimuth;
 
                     double r_depth_m = e.Value;
@@ -361,13 +403,13 @@ namespace uBear.Core
                         string rID = ((int)remID).ToString();
                         
                         if (IsUseGNSS &&
-                            uGNSSPort.Heading.IsInitializedAndNotObsolete &&
-                            uGNSSPort.Latitude.IsInitializedAndNotObsolete &&
-                            uGNSSPort.Longitude.IsInitializedAndNotObsolete)
+                            gnssHeading.IsInitialized &&
+                            gnssLatitude.IsInitialized &&
+                            gnssLongitude.IsInitialized)
                         {
-                            double o_hdn_deg = uGNSSPort.Heading.Value;
-                            double o_lat_deg = uGNSSPort.Latitude.Value;
-                            double o_lon_deg = uGNSSPort.Longitude.Value;
+                            double o_hdn_deg = gnssHeading.Value;
+                            double o_lat_deg = gnssLatitude.Value;
+                            double o_lon_deg = gnssLongitude.Value;
 
                             double a_azimuth_deg = double.NaN;
                             double a_range_m = double.NaN;
@@ -512,20 +554,20 @@ namespace uBear.Core
             if (IsUseGNSS)
             {
                 sb.AppendLine();
-                if (uGNSSPort.Latitude.IsInitialized)
-                    sb.AppendFormat("LAT: {0}\r\n", uGNSSPort.Latitude.ToString());
+                if (gnssLatitude.IsInitialized)
+                    sb.AppendFormat("LAT: {0}\r\n", gnssLatitude.ToString());
 
-                if (uGNSSPort.Longitude.IsInitialized)
-                    sb.AppendFormat("LON: {0}\r\n", uGNSSPort.Longitude.ToString());
+                if (gnssLongitude.IsInitialized)
+                    sb.AppendFormat("LON: {0}\r\n", gnssLongitude.ToString());
 
-                if (uGNSSPort.Heading.IsInitialized)
-                    sb.AppendFormat("HDN: {0}\r\n", uGNSSPort.Heading.ToString());
+                if (gnssHeading.IsInitialized)
+                    sb.AppendFormat("HDN: {0}\r\n", gnssHeading.ToString());
 
-                if (uGNSSPort.CourseOverGround.IsInitialized)
-                    sb.AppendFormat("CRS: {0}\r\n", uGNSSPort.CourseOverGround.ToString());
+                if (gnssCourse.IsInitialized)
+                    sb.AppendFormat("CRS: {0}\r\n", gnssCourse.ToString());
 
-                if (uGNSSPort.GroundSpeed.IsInitialized)
-                    sb.AppendFormat("SPD: {0}\r\n", uGNSSPort.GroundSpeed.ToString());
+                if (gnssSpeed.IsInitialized)
+                    sb.AppendFormat("SPD: {0}\r\n", gnssSpeed.ToString());
             }
 
             return sb.ToString();
@@ -558,17 +600,26 @@ namespace uBear.Core
 
                 uGNSSPort.IsActiveChanged += (o, e) => IsGNSSActiveChanged.Rise(o, e);
 
-                uGNSSPort.HeadingUpdated += (o, e) => HeadingUpdated.Rise(this, new EventArgs());
+                uGNSSPort.HeadingUpdated += (o, e) =>
+                {
+                    gnssHeading.Value = uGNSSPort.Heading;
+                    HeadingUpdated.Rise(this, new EventArgs());
+                };
 
                 uGNSSPort.LocationUpdated += (o, e) =>
                 {
+                    gnssLatitude.Value = uGNSSPort.Latitude;
+                    gnssLongitude.Value = uGNSSPort.Longitude;
+                    gnssCourse.Value = uGNSSPort.CourseOverGround;
+                    gnssSpeed.Value = uGNSSPort.GroundSpeed;
+
                     AbsoluteLocationUpdated.Rise(this,
                         new AbsoluteLocationUpdatedEventArgs("uBear",
-                        uGNSSPort.Latitude.Value,
-                        uGNSSPort.Longitude.Value,
+                        uGNSSPort.Latitude,
+                        uGNSSPort.Longitude,
                         uPort.Depth_m.Value));
 
-                    wpManager.UpdateLocation(uGNSSPort.Latitude.Value, uGNSSPort.Longitude.Value);
+                    wpManager.UpdateLocation(uGNSSPort.Latitude, uGNSSPort.Longitude);
 
                     StateUpdateHandler.Rise(o, e);
                 };
@@ -613,7 +664,7 @@ namespace uBear.Core
             if (!remotes[remID].VBat_V.IsInitialized || remotes[remID].VBat_V.IsObsolete)
                 remReq = RC_CODES_Enum.RC_BAT_V_GET;
 
-            uPort.Query_RC((int)remID, rxChID, remReq);
+            uPort.Query_RC((int)(remID), rxChID, remReq);
         }
 
         /// <summary>
@@ -678,6 +729,7 @@ namespace uBear.Core
         #region Events
 
         public EventHandler uPortDetectedChanged;
+        public EventHandler DeviceInfoValidChanged;
 
         public EventHandler IsActiveChanged;
         public EventHandler<LogEventArgs> LogEventHandler;

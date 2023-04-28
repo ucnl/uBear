@@ -155,13 +155,13 @@ namespace uBear.Core
         public static readonly Func<object, int> O2I = o => o == null ? -1 : (int)o;
 
 
-        public static readonly Func<double, string> meters1dec_fmtr = o => string.Format("{0:F01} m", o, CultureInfo.InvariantCulture);
-        public static readonly Func<double, string> degrees1dec_fmtr = o => string.Format("{0:F01} °", o, CultureInfo.InvariantCulture);
-        public static readonly Func<double, string> latlon_fmtr = o => string.Format("{0:F06} °", o, CultureInfo.InvariantCulture);
-        public static readonly Func<double, string> db_fmtr = o => string.Format("{0:F01} dB", o, CultureInfo.InvariantCulture);
-        public static readonly Func<double, string> degC_fmtr = o => string.Format("{0:F01} °C", o, CultureInfo.InvariantCulture);
-        public static readonly Func<double, string> mBar_fmtr = o => string.Format("{0:F01} mBar", o, CultureInfo.InvariantCulture);
-        public static readonly Func<double, string> v1dec_fmt = o => string.Format("{0:F01} V", o, CultureInfo.InvariantCulture);
+        public static readonly Func<double, string> meters1dec_fmtr = o => string.Format(CultureInfo.InvariantCulture, "{0:F01} m", o);
+        public static readonly Func<double, string> degrees1dec_fmtr = o => string.Format(CultureInfo.InvariantCulture, "{0:F01} °", o);
+        public static readonly Func<double, string> latlon_fmtr = o => string.Format(CultureInfo.InvariantCulture, "{0:F06} °", o);
+        public static readonly Func<double, string> db_fmtr = o => string.Format(CultureInfo.InvariantCulture, "{0:F01} dB", o);
+        public static readonly Func<double, string> degC_fmtr = o => string.Format(CultureInfo.InvariantCulture, "{0:F01} °C", o);
+        public static readonly Func<double, string> mBar_fmtr = o => string.Format(CultureInfo.InvariantCulture, "{0:F01} mBar", o);
+        public static readonly Func<double, string> v1dec_fmt = o => string.Format(CultureInfo.InvariantCulture, "{0:F01} V", o);
 
         
 
