@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using uBear.Core;
@@ -43,6 +45,8 @@ namespace uBear
         uCore core;
         TrackManager tManager;
 
+        static readonly string appicon = "🐻";
+
         #endregion
 
         #region Constructor
@@ -53,7 +57,11 @@ namespace uBear
 
             #region Early init
 
-            string vString = string.Format("🐻 {0} v{1}", Application.ProductName, Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            string vString = string.Format("{0} {1} v{2} {3}",
+                appicon,
+                Application.ProductName, 
+                Assembly.GetExecutingAssembly().GetName().Version.ToString(),
+                MDates.GetReferenceNote());
             this.Text = vString;
 
             #endregion
@@ -156,6 +164,25 @@ namespace uBear
             {
                 InvokeSetLeftTopText(core.SystemDescriptionGet());
                 InvokeSynchRemotes(core.RemoteDescriptorsGet());
+            };
+
+            core.LocationOverrideEnabledChanged += (o, e) => 
+            {
+                UIHelpers.InvokeSetCheckedState(mainToolStrip, utilsLocationOverrideBtn, core.LocationOverrideEnabled);
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendFormat("core.LocationOverrideEnabled = {0}", core.LocationOverrideEnabled);
+
+                if (core.LocationOverrideEnabled)
+                {
+                    sb.AppendFormat(CultureInfo.InvariantCulture,
+                        " (Lat={0:F06}°, Lon={1:F06}, Hdn={2:F01}°)",
+                        core.LatitudeOverride,
+                        core.LongitudeOverride,
+                        core.HeadingOverride);
+                }
+
+                InvokeAppendHistoryLine(sb.ToString());
             };
 
             #endregion            
@@ -427,7 +454,7 @@ namespace uBear
 
             using (SettingsEditor sDialog = new SettingsEditor())
             {
-                sDialog.Text = string.Format("🐻 {0} - Settings", Application.ProductName);
+                sDialog.Text = string.Format("{0} {1} - Settings", appicon, Application.ProductName);
                 sDialog.Value = sProvider.Data;
 
                 if (sDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
@@ -667,6 +694,30 @@ namespace uBear
             }
         }
 
+        //!!!
+        //
+        private void overrideLocation_Click(object sender, EventArgs e)
+        {            
+            if (core.LocationOverrideEnabled)
+            {
+                core.LocationOverrideDisable();
+            }
+            else
+            {
+                using (LocationOverrideDialog lDialog = new LocationOverrideDialog())
+                {
+                    lDialog.Latitude_deg = core.LatitudeOverride;
+                    lDialog.Longitude_deg = core.LongitudeOverride;
+                    lDialog.Heading_deg = core.HeadingOverride;
+
+                    if (lDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        core.LocationOverrideEnable(lDialog.Latitude_deg, lDialog.Longitude_deg, lDialog.Heading_deg);
+                    }
+                }
+            }
+        }
+
         #endregion
 
         private void noteTxb_TextChanged(object sender, EventArgs e)
@@ -806,6 +857,6 @@ namespace uBear
 
         #endregion
 
-        #endregion        
+        #endregion
     }
 }

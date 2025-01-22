@@ -52,6 +52,10 @@
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             this.trackClearBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator10 = new System.Windows.Forms.ToolStripSeparator();
+            this.deviceBtn = new System.Windows.Forms.ToolStripMenuItem();
+            this.deviceViewInfoBtn = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator11 = new System.Windows.Forms.ToolStripSeparator();
+            this.utilsLocationOverrideBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.noteTxb = new System.Windows.Forms.ToolStripTextBox();
             this.addNoteBtn = new System.Windows.Forms.ToolStripButton();
@@ -75,8 +79,6 @@
             this.treeExpandBtn = new System.Windows.Forms.ToolStripButton();
             this.treeCollapseBtn = new System.Windows.Forms.ToolStripButton();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
-            this.deviceBtn = new System.Windows.Forms.ToolStripMenuItem();
-            this.deviceViewInfoBtn = new System.Windows.Forms.ToolStripMenuItem();
             this.mainStatusStrip.SuspendLayout();
             this.mainToolStrip.SuspendLayout();
             this.plotPanel.SuspendLayout();
@@ -260,7 +262,9 @@
             this.utilsBtn.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.trackBtn,
             this.toolStripSeparator10,
-            this.deviceBtn});
+            this.deviceBtn,
+            this.toolStripSeparator11,
+            this.utilsLocationOverrideBtn});
             this.utilsBtn.Image = ((System.Drawing.Image)(resources.GetObject("utilsBtn.Image")));
             this.utilsBtn.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.utilsBtn.Name = "utilsBtn";
@@ -276,14 +280,14 @@
             this.trackClearBtn});
             this.trackBtn.Enabled = false;
             this.trackBtn.Name = "trackBtn";
-            this.trackBtn.Size = new System.Drawing.Size(224, 36);
+            this.trackBtn.Size = new System.Drawing.Size(293, 36);
             this.trackBtn.Text = "🗺 Tracks";
             this.trackBtn.ToolTipText = "Tracks submenu";
             // 
             // trackExportBtn
             // 
             this.trackExportBtn.Name = "trackExportBtn";
-            this.trackExportBtn.Size = new System.Drawing.Size(224, 36);
+            this.trackExportBtn.Size = new System.Drawing.Size(204, 36);
             this.trackExportBtn.Text = "💾 Export";
             this.trackExportBtn.ToolTipText = "Press to save the current base station & remotes tracks as KML or CSV file";
             this.trackExportBtn.Click += new System.EventHandler(this.trackExportBtn_Click);
@@ -291,12 +295,12 @@
             // toolStripSeparator9
             // 
             this.toolStripSeparator9.Name = "toolStripSeparator9";
-            this.toolStripSeparator9.Size = new System.Drawing.Size(221, 6);
+            this.toolStripSeparator9.Size = new System.Drawing.Size(201, 6);
             // 
             // trackClearBtn
             // 
             this.trackClearBtn.Name = "trackClearBtn";
-            this.trackClearBtn.Size = new System.Drawing.Size(224, 36);
+            this.trackClearBtn.Size = new System.Drawing.Size(204, 36);
             this.trackClearBtn.Text = "🧹 Clear";
             this.trackClearBtn.ToolTipText = "Clears the current tracks. WARNING! This action cannot be undone";
             this.trackClearBtn.Click += new System.EventHandler(this.trackClearBtn_Click);
@@ -304,7 +308,35 @@
             // toolStripSeparator10
             // 
             this.toolStripSeparator10.Name = "toolStripSeparator10";
-            this.toolStripSeparator10.Size = new System.Drawing.Size(221, 6);
+            this.toolStripSeparator10.Size = new System.Drawing.Size(290, 6);
+            // 
+            // deviceBtn
+            // 
+            this.deviceBtn.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.deviceViewInfoBtn});
+            this.deviceBtn.Enabled = false;
+            this.deviceBtn.Name = "deviceBtn";
+            this.deviceBtn.Size = new System.Drawing.Size(293, 36);
+            this.deviceBtn.Text = "🤖 Device";
+            // 
+            // deviceViewInfoBtn
+            // 
+            this.deviceViewInfoBtn.Name = "deviceViewInfoBtn";
+            this.deviceViewInfoBtn.Size = new System.Drawing.Size(211, 36);
+            this.deviceViewInfoBtn.Text = "View info...";
+            this.deviceViewInfoBtn.Click += new System.EventHandler(this.deviceViewInfoBtn_Click);
+            // 
+            // toolStripSeparator11
+            // 
+            this.toolStripSeparator11.Name = "toolStripSeparator11";
+            this.toolStripSeparator11.Size = new System.Drawing.Size(290, 6);
+            // 
+            // utilsLocationOverrideBtn
+            // 
+            this.utilsLocationOverrideBtn.Name = "utilsLocationOverrideBtn";
+            this.utilsLocationOverrideBtn.Size = new System.Drawing.Size(293, 36);
+            this.utilsLocationOverrideBtn.Text = "Override location...";
+            this.utilsLocationOverrideBtn.Click += new System.EventHandler(this.overrideLocation_Click);
             // 
             // toolStripSeparator4
             // 
@@ -593,22 +625,6 @@
             this.toolStripLabel1.Size = new System.Drawing.Size(97, 32);
             this.toolStripLabel1.Text = "REMOTES";
             // 
-            // deviceBtn
-            // 
-            this.deviceBtn.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deviceViewInfoBtn});
-            this.deviceBtn.Enabled = false;
-            this.deviceBtn.Name = "deviceBtn";
-            this.deviceBtn.Size = new System.Drawing.Size(224, 36);
-            this.deviceBtn.Text = "🤖 Device";
-            // 
-            // deviceViewInfoBtn
-            // 
-            this.deviceViewInfoBtn.Name = "deviceViewInfoBtn";
-            this.deviceViewInfoBtn.Size = new System.Drawing.Size(224, 36);
-            this.deviceViewInfoBtn.Text = "View info...";
-            this.deviceViewInfoBtn.Click += new System.EventHandler(this.deviceViewInfoBtn_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
@@ -623,6 +639,7 @@
             this.KeyPreview = true;
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MainForm";
+            this.ShowIcon = false;
             this.Text = "uBear";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
@@ -694,6 +711,8 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripMenuItem deviceBtn;
         private System.Windows.Forms.ToolStripMenuItem deviceViewInfoBtn;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator11;
+        private System.Windows.Forms.ToolStripMenuItem utilsLocationOverrideBtn;
     }
 }
 
