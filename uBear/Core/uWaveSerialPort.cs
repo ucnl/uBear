@@ -217,9 +217,9 @@ namespace uBear.Core
                         (queryID == ICs.IC_H2H_PT_SETTINGS_WRITE) ||
                         (queryID == ICs.IC_H2D_AMB_DTA_CFG) ||
                         (queryID == ICs.IC_H2D_INC_DTA_CFG))
-                        StartTimer(3000);
+                        StartTimer(4000);
                     else
-                        StartTimer(1000);
+                        StartTimer(1500);
 
                     IsWaitingLocal = true;
 
@@ -310,9 +310,8 @@ namespace uBear.Core
                     (sntID == ICs.IC_H2D_PT_ITG))
                 {                    
                     IsWaitingRemote = true;
-                    StartTimer(4000);
+                    StartTimer(6000);
                 }
-                               
 
                 ACKReceived.Rise(this, new ACKReceivedEventArgs(sntID, errID));
             }

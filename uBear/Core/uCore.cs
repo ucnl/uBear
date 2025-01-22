@@ -197,6 +197,14 @@ namespace uBear.Core
 
         readonly string[] llSeparators = new string[] { ">>", " " };
 
+        public double LatitudeOverride { get; private set; }
+        public double LongitudeOverride { get; private set; }
+        public double HeadingOverride { get; private set; }
+
+        PrecisionTimer pTimer;
+
+        public bool LocationOverrideEnabled { get => pTimer.IsRunning; }
+
         #endregion
 
         #region Constructor
@@ -383,17 +391,15 @@ namespace uBear.Core
                     e.IsValuePresent)                           // and a remote data value?
                 {
                     double s_range_m = e.PropTime_sec * SoundSpeed;
-
-                    /// WARNING!!!
-                    double r_azimuth_deg = 450 - e.Azimuth;
-
-                    double r_depth_m = e.Value;
+                    double r_azimuth_deg = e.Azimuth;
+                    //double r_azimuth_deg = Algorithms.Wrap360(450 - e.Azimuth);
 
                     remotes[remID].SRange_m.Value = s_range_m;
                     remotes[remID].RAzimuth_deg.Value = r_azimuth_deg;
 
                     if (e.RCCmdID == RC_CODES_Enum.RC_DPT_GET)  // and is it the depth reading?
                     {
+                        double r_depth_m = e.Value;
                         double delta_dpt_m = Math.Abs(r_depth_m - o_dpt_m);
                         double p_range_m = s_range_m > delta_dpt_m ? Math.Sqrt(s_range_m * s_range_m - delta_dpt_m * delta_dpt_m) : 0.0;
                                                 
@@ -402,8 +408,7 @@ namespace uBear.Core
 
                         string rID = ((int)remID).ToString();
                         
-                        if (IsUseGNSS &&
-                            gnssHeading.IsInitialized &&
+                        if (gnssHeading.IsInitialized &&
                             gnssLatitude.IsInitialized &&
                             gnssLongitude.IsInitialized)
                         {
@@ -414,10 +419,10 @@ namespace uBear.Core
                             double a_azimuth_deg = double.NaN;
                             double a_range_m = double.NaN;
 
-                            CS_Convert(o_hdn_deg, phi_deg,
+                            PolarCS_ShiftRotate(o_hdn_deg, phi_deg,
                                 r_azimuth_deg, p_range_m,
                                 x_offset_m, y_offset_m,
-                                out a_azimuth_deg, out a_range_m);
+                                out a_azimuth_deg, out a_range_m);                            
 
                             remotes[remID].AAzimuth_deg.Value = a_azimuth_deg;
                             remotes[remID].APRange_m.Value = a_range_m;
@@ -442,7 +447,7 @@ namespace uBear.Core
                             }
 
                             if (remotes[remID].FilterState == null)
-                                remotes[remID].FilterState = new DHFilter(16, 0.5, 5);
+                                remotes[remID].FilterState = new DHFilter(8, 1, 10);
 
                             DateTime ts = DateTime.Now;
 
@@ -500,6 +505,24 @@ namespace uBear.Core
             };
 
             #endregion
+
+            #region timer
+
+            pTimer = new PrecisionTimer();
+            pTimer.Period = 1000;
+            pTimer.Mode = Mode.Periodic;
+
+            pTimer.Tick += (o, e) =>
+            {
+                gnssLatitude.Value = LatitudeOverride;
+                gnssLongitude.Value = LongitudeOverride;
+                gnssHeading.Value = HeadingOverride;
+            };
+
+            pTimer.Started += (o, e) => LocationOverrideEnabledChanged.Rise(this, new EventArgs());
+            pTimer.Stopped += (o, e) => LocationOverrideEnabledChanged.Rise(this, new EventArgs());
+
+            #endregion
         }
 
         #endregion
@@ -508,6 +531,23 @@ namespace uBear.Core
 
         #region Public
 
+        public void LocationOverrideEnable(double lat_deg, double lon_deg, double heading_deg)
+        {
+            if (pTimer.IsRunning)
+                pTimer.Stop();
+
+            LatitudeOverride = lat_deg;
+            LongitudeOverride = lon_deg;
+            HeadingOverride = heading_deg;
+
+            pTimer.Start();
+        }
+
+        public void LocationOverrideDisable()
+        {
+            pTimer.Stop();
+        }
+
         public void Emulate(string s)
         {
             string str = s.Trim() + NMEAParser.SentenceEndDelimiter;
@@ -515,7 +555,7 @@ namespace uBear.Core
             var splits = str.Split(llSeparators, StringSplitOptions.RemoveEmptyEntries);
             if (splits.Length == 3)
             {
-                if (splits[1] == "(AUX)")
+                if (splits[1] == "(GNSS)")
                 {
                     if (uGNSSPort == null)
                         AuxGNSSInit(BaudRate.baudRate9600);
@@ -671,23 +711,32 @@ namespace uBear.Core
         /// All angles clockwise from the North direction
         /// </summary>
         /// <param name="heading_deg">Compass reading, 0-360° clockwise from North direction</param>
-        /// <param name="phi_deg">Antenna - comass zero directions difference, °</param>
+        /// <param name="phi_deg">Antenna - comрass zero directions difference, °</param>
         /// <param name="bearing_deg">Bearing to a responder, 0-360° clockwise from North direction</param>
         /// <param name="r_m">slant range projection, m</param>
         /// <param name="xt">transversal GNSS/antenna offset</param>
         /// <param name="yt">longitudal GNSS/antenna offset</param>
         /// <param name="a_deg">Absolute azimuth to the responder</param>
         /// <param name="r_a">Range to the responder (from the GNSS position)</param>
-        private static void CS_Convert(double heading_deg, double phi_deg, double bearing_deg,
+        private static void PolarCS_ShiftRotate(double heading_deg, double phi_deg, double bearing_deg,
             double r_m, double xt, double yt,
             out double a_deg, out double r_a)
         {
-            double alpha = Algorithms.Deg2Rad(heading_deg);
-            double teta = Algorithms.Wrap2PI(Algorithms.Deg2Rad(450 - (bearing_deg - phi_deg)));
-            double xr = xt + r_m * Math.Cos(teta);
-            double yr = yt + r_m * Math.Sin(teta);
+            double teta = Algorithms.Wrap2PI(Algorithms.Deg2Rad(bearing_deg + phi_deg));
+
+            double xr = xt + r_m * Math.Sin(teta);
+            double yr = yt + r_m * Math.Cos(teta);
+
             r_a = Math.Sqrt(xr * xr + yr * yr);
-            a_deg = Algorithms.Rad2Deg(Algorithms.Wrap2PI(2.5 * Math.PI - (Math.Atan2(xr, yr) + alpha)));
+
+            double a_r = Math.Atan2(xr, yr);
+            if (a_r < 0)
+                a_r += 2 * Math.PI;
+
+            a_r += Algorithms.Deg2Rad(heading_deg);
+            a_r = Algorithms.Wrap2PI(a_r);
+
+            a_deg = Algorithms.Rad2Deg(a_r);
         }
 
         #endregion
@@ -744,6 +793,8 @@ namespace uBear.Core
 
         public EventHandler<RelativeLocationUpdatedEventArgs> RelativeLocationUpdated;
         public EventHandler<AbsoluteLocationUpdatedEventArgs> AbsoluteLocationUpdated;
+
+        public EventHandler LocationOverrideEnabledChanged;
 
         #endregion
     }
